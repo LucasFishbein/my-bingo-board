@@ -89,10 +89,11 @@ export async function getConfig(): Promise<GameConfig> {
     .from('game_config')
     .select('*')
     .eq('is_active', true)
-    .maybeSingle();
+    .order('updated_at', { ascending: false })
+    .limit(1);
 
   if (error) throw error;
-  if (data) return data as GameConfig;
+  if (data && data.length > 0) return data[0] as GameConfig;
 
   const dims = suggestGridDimensions(DEFAULT_CONFIG.names.length);
   const seed = {
@@ -101,6 +102,8 @@ export async function getConfig(): Promise<GameConfig> {
     grid_cols: dims.cols,
     square_points: DEFAULT_CONFIG.square_points,
     bingo_bonus: DEFAULT_CONFIG.bingo_bonus,
+    has_free_square: DEFAULT_CONFIG.has_free_square ?? false,
+    usable_names_count: null,
     is_active: true,
   };
   const { data: inserted, error: insertError } = await supabase
